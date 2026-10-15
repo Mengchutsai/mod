@@ -1,0 +1,1 @@
+{ "name": "token-buddy", "version": "0.1.0", "description": "A cute side panel showing how much context and usage you have left", "types": "./types/index.d.ts" }
