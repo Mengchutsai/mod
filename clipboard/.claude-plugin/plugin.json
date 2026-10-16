@@ -1,0 +1,7 @@
+{
+  "name": "clipboard",
+  "version": "0.1.0",
+  "description": "A side panel that keeps snippets you want to hold on to: your mouse selection, Claude's last answer, or a typed note; export them to a markdown file with /keep export",
+  "author": { "name": "Mengchu Tsai" },
+  "types": "./types/index.d.ts"
+}
