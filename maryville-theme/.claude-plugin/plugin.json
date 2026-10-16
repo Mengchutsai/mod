@@ -1,6 +1,6 @@
 {
   "name": "maryville-theme",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Maryville University colors for Claude Code: dark and light themes, switched with /maryville",
   "author": { "name": "Mengchu Tsai" }
 }
