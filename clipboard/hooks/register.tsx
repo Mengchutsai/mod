@@ -8,9 +8,8 @@ const TITLE = 'Clipboard'
 const MAX_CLIPS = 200
 const EXPORT_FILE = 'clipboard.md'
 
-/** The keep button's colors: university red under beige text, readable on light and dark alike. */
+/** The keep pill's color: university red, as an outline, readable on light and dark alike. */
 const MARYVILLE_RED = '#ce2431'
-const BEIGE = '#f5efe6'
 
 const clips = atom({ plugin: 'clipboard', key: 'clips' } as const, [] as Clip[])
 const lastAnswer = atom({ plugin: 'clipboard', key: 'lastAnswer' } as const, null as string | null)
@@ -188,22 +187,29 @@ export const register: Register = on => {
     return (
       <Box flexDirection="column">
         {own}
-        <Button
-          key={`keep-${e.requestId}`}
-          plain
-          label="keep"
-          onPress={async () => {
-            const id = await keep($, text, 'answer')
-            const said = id === null ? 'That reply is already the newest clip.' : `Kept this reply as #${id}.`
-            await say($, said)
-            $.ui.toast(said)
-            void $.ui.open({ id: PANE, title: TITLE }).catch(() => undefined)
-          }}
-        >
-          <Text color={BEIGE} backgroundColor={MARYVILLE_RED} bold>
-            {' keep '}
-          </Text>
-        </Button>
+        {/* A small pill at the end of the reply: a thin red rounded outline the
+            desktop draws faithfully. A desktop draws a button's label in its
+            own colors; the terminal draws the red text child. */}
+        <Box flexDirection="row" justifyContent="flex-end" marginTop={1}>
+          <Box borderStyle="round" borderColor={MARYVILLE_RED} paddingX={1}>
+            <Button
+              key={`keep-${e.requestId}`}
+              plain
+              label="keep"
+              onPress={async () => {
+                const id = await keep($, text, 'answer')
+                const said = id === null ? 'That reply is already the newest clip.' : `Kept this reply as #${id}.`
+                await say($, said)
+                $.ui.toast(said)
+                void $.ui.open({ id: PANE, title: TITLE }).catch(() => undefined)
+              }}
+            >
+              <Text color={MARYVILLE_RED} bold>
+                keep
+              </Text>
+            </Button>
+          </Box>
+        </Box>
       </Box>
     )
   })
