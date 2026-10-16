@@ -89,7 +89,12 @@ export const register: Register = on => {
             key={`q-${i + 1}`}
             plain
             label={`${i + 1}. ${preview(q.text)}`}
-            onPress={() => $.ui.scroll({ to: { requestId: q.requestId }, block: 'start' })}
+            onPress={async () => {
+              // A transcript row scrolls only in answer to the person's own
+              // input, which a click is; where the surface refuses, say why.
+              const { deny } = await $.ui.scroll({ to: { requestId: q.requestId }, block: 'start' })
+              if (deny) $.ui.toast(`Could not jump to question ${i + 1}: ${deny}`)
+            }}
           />
         ))}
       </Box>

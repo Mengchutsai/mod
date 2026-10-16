@@ -1,1 +1,1 @@
-{ "name": "my-questions", "version": "0.1.0", "description": "A side panel listing your questions; click one to jump to it in the chat", "types": "./types/index.d.ts" }
+{ "name": "my-questions", "version": "0.1.1", "description": "A side panel listing your questions; click one to jump to it in the chat", "types": "./types/index.d.ts" }
