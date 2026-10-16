@@ -125,7 +125,9 @@ for (const surface of ['terminal', 'desktop'] as const) {
   })
 
   for (const kind of ['composer', 'sdk'] as const) {
-    test(`the person's ${kind} prompt is drawn on a tinted row on ${surface}`, async $ => {
+    test(`the person's ${kind} prompt is drawn on a tinted row on ${surface}`, async ($, on) => {
+      // The hook passes the row down the chain so other mods see it; the test stands in for the engine beneath.
+      on('ui.render', { component: 'UserMessage' }, (_$, e) => ({ type: 'Text', children: [e.props.text] }) as never)
       const ui = await $.ui.mount({
         plugin: 'maryville-theme',
         surface,
@@ -135,6 +137,8 @@ for (const surface of ['terminal', 'desktop'] as const) {
       })
       const row = await ui.find({ key: 'you' })
       expect(row?.text).toContain('change the app theme')
+      expect(row?.props.borderStyle).toBe('round')
+      expect(row?.props.borderColor).toBe('#ce2431')
       // The terminal's background is the Maryville theme's, so the row is tinted;
       // the desktop's is its own light or dark, so the row takes no tint and
       // the text follows the surface's own `text` color.

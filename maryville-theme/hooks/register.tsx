@@ -337,14 +337,15 @@ export const register: Register = on => {
     }
     count('UserMessage', e.surface, 'drew')
 
+    // Let the plugins beneath see the row (my-questions records prompts from
+    // it) before this tree replaces what they and the engine would draw.
+    await next(e)
+
     const p = paletteFor(await read($, mode), e.surface)
     const tint = p.surface ? { backgroundColor: p.surface } : {}
     const { Box, Text } = $.ui.resolve(e)
     return (
-      <Box key="you" flexDirection="row" columnGap={1} paddingX={1} {...tint}>
-        <Text color={p.accent} bold>
-          ❯
-        </Text>
+      <Box key="you" paddingX={1} borderStyle="round" borderColor={p.accent} {...tint}>
         <Text color={p.fg} wrap="wrap">
           {e.props.text}
         </Text>
@@ -373,7 +374,7 @@ export const register: Register = on => {
     const used = u.percent
     const color = used >= 90 ? p.err : used >= 70 ? p.warn : p.accent
     return (
-      <Box key="band" flexDirection="row" columnGap={2}>
+      <Box key="band" flexDirection="row" columnGap={2} paddingX={1} borderStyle="round" borderColor={p.accent}>
         <Text>
           <Text color={color}>{meter(used)}</Text> <Text color={p.muted}>context {100 - used}% left</Text>
         </Text>
