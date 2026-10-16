@@ -4,7 +4,7 @@
 | --- | --- |
 | **token-buddy** | A cute critter in a side panel (and a row above the prompt) showing how much context, 5-hour and weekly usage you have left. `/tokens` reopens it. |
 | **my-questions** | A side panel listing every question you asked in the session; click one to jump to it in the chat. `/questions` reopens it. |
-| **maryville-theme** | Maryville University maroon and red for the Claude Code interface, as a dark and a light theme. `/maryville` or `/maryville light` installs the theme into `~/.claude/themes/` and switches to it; both also appear in `/theme`. |
+| **maryville-theme** | Maryville University maroon and red in the transcript, in the terminal and the desktop app: tool rows with icons and timings, edit diff cards, shell output cards, your own messages on a tinted row, brand spinner words. `/maryville` (dark) or `/maryville light` also installs a matching terminal theme into `~/.claude/themes/`; `/maryville off` restores Claude Code's own drawing, `/maryville band` toggles a usage band above the prompt. |
 
 ## Install
 
