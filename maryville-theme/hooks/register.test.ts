@@ -124,16 +124,23 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(card?.text).toContain('warn')
   })
 
-  test(`the person's prompt is drawn on a tinted row on ${surface}`, async $ => {
-    const ui = await $.ui.mount({
-      plugin: 'maryville-theme',
-      surface,
-      component: 'UserMessage',
-      requestId: 'm1',
-      props: { text: 'change the app theme', origin: { kind: 'composer' }, isExpanded: false },
+  for (const kind of ['composer', 'sdk'] as const) {
+    test(`the person's ${kind} prompt is drawn on a tinted row on ${surface}`, async $ => {
+      const ui = await $.ui.mount({
+        plugin: 'maryville-theme',
+        surface,
+        component: 'UserMessage',
+        requestId: 'm1',
+        props: { text: 'change the app theme', origin: { kind }, isExpanded: false },
+      })
+      const row = await ui.find({ key: 'you' })
+      expect(row?.text).toContain('change the app theme')
+      // The terminal's background is the Maryville theme's, so the row is tinted;
+      // the desktop's is its own light or dark, so the row takes no tint and
+      // the text follows the surface's own `text` color.
+      expect(row?.props.backgroundColor).toBe(surface === 'terminal' ? '#2b1114' : undefined)
+      const body = await ui.find({ type: 'Text', text: 'change the app theme' })
+      expect(body?.props.color).toBe(surface === 'terminal' ? '#e6e6e6' : 'text')
     })
-    const row = await ui.find({ key: 'you' })
-    expect(row?.text).toContain('change the app theme')
-    expect(row?.props.backgroundColor).toBe('#2b1114')
-  })
+  }
 }

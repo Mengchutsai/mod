@@ -13,10 +13,11 @@ export type Palette = {
   accentSoft: string
   /** Brand maroon, used on light backgrounds where the red is too bright. */
   maroon: string
+  /** Body text: a raw color, or the theme key `text` where the surface knows its own background. */
   fg: string
   muted: string
-  /** The tint behind the person's own messages and card headers. */
-  surface: string
+  /** The tint behind the person's own messages and card headers; absent where the background is unknown. */
+  surface?: string
   ok: string
   err: string
   warn: string
@@ -63,6 +64,34 @@ export const PALETTES: Record<Mode, Palette> = {
     web: '#1f5f9e',
     mcp: '#6b3fa0',
   },
+}
+
+/**
+ * The palette for a surface whose background a mod cannot know: the desktop
+ * app follows its own light or dark appearance, not the Claude Code theme
+ * setting. Text takes the surface's own `text` and `inactive` colors, and
+ * every accent is a mid-tone that reads on white and on near-black alike.
+ */
+export const NEUTRAL: Palette = {
+  accent: '#ce2431',
+  accentSoft: '#d9535e',
+  maroon: '#94151e',
+  fg: 'text',
+  muted: 'inactive',
+  ok: '#2e9e4f',
+  err: '#d3372f',
+  warn: '#c08a00',
+  read: '#7a7c80',
+  write: '#d9535e',
+  run: '#ce2431',
+  search: '#b8860b',
+  web: '#3b82c4',
+  mcp: '#8e5bb5',
+}
+
+/** The palette a drawing uses: the mode's on the terminal, the neutral one elsewhere. */
+export function paletteFor(mode: Mode, surface: string): Palette {
+  return surface === 'terminal' ? PALETTES[mode] : NEUTRAL
 }
 
 /** Which palette a Claude Code theme preference calls for. */

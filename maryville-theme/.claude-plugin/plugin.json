@@ -1,6 +1,6 @@
 {
   "name": "maryville-theme",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Maryville University colors for Claude Code: tool rows, edit cards and your messages drawn in maroon and red, plus matching terminal themes, switched with /maryville",
   "types": "./types/index.d.ts",
   "author": { "name": "Mengchu Tsai" }

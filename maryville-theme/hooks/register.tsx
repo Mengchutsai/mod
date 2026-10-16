@@ -5,8 +5,8 @@ import type { Usage } from '../types'
 import {
   DONE_WORDS,
   ICONS,
-  PALETTES,
   SPINNER_WORDS,
+  paletteFor,
   diffCounts,
   diffSource,
   fold,
@@ -73,12 +73,19 @@ const LIMIT_NAMES: Record<string, string> = {
 /** When each tool call started and ended, for the elapsed time on its row. */
 const timings = new Map<string, { start: number; end?: number }>()
 
+/** How often each drawing hook ran since the module loaded, per surface: `/maryville status` reports it. */
+const fired: Record<string, number> = {}
+function count(component: string, surface: string, outcome: 'drew' | 'passed'): void {
+  const key = `${component}@${surface}:${outcome}`
+  fired[key] = (fired[key] ?? 0) + 1
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: COMMAND,
-      description: 'Maryville colors: dark | light | on | off | band',
-      argumentHint: 'dark | light | on | off | band',
+      description: 'Maryville colors: dark | light | on | off | band | status',
+      argumentHint: 'dark | light | on | off | band | status',
     })
 
     const theme = (await $.config.list()).find(row => row.key === 'theme')
@@ -116,6 +123,22 @@ export const register: Register = on => {
 
   on('command.run', { command: COMMAND }, async ($, e) => {
     const arg = e.args.trim().toLowerCase()
+
+    if (arg === 'status') {
+      const surfaces = (await $.session.surfaces()).join(', ') || 'none'
+      const counts = Object.entries(fired)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, n]) => `${k} ${n}`)
+        .join('\n')
+      return {
+        text: [
+          `surfaces: ${surfaces}`,
+          `mode: ${await read($, mode)}, drawing: ${(await read($, isOn)) ? 'on' : 'off'}, band: ${(await read($, band)) ? 'on' : 'off'}`,
+          'drawing hooks asked since load:',
+          counts || '(none yet)',
+        ].join('\n'),
+      }
+    }
 
     if (arg === 'off' || arg === 'on') {
       const value = arg === 'on'
@@ -165,11 +188,14 @@ export const register: Register = on => {
   // --- the transcript -------------------------------------------------------
 
   on('ui.render', { component: 'ToolUse' }, async ($, e, next) => {
-    if (!(await read($, isOn))) return next(e)
     const kind = kindOf(e.props.tool)
-    if (kind === null) return next(e)
+    if (!(await read($, isOn)) || kind === null) {
+      count('ToolUse', e.surface, 'passed')
+      return next(e)
+    }
+    count('ToolUse', e.surface, 'drew')
 
-    const p = PALETTES[await read($, mode)]
+    const p = paletteFor(await read($, mode), e.surface)
     const { Box, Text } = $.ui.resolve(e)
     const { isRunning, isErrored, isInterrupted } = e.props
     const state = isInterrupted ? { glyph: '⊘', color: p.warn } : isErrored ? { glyph: '✗', color: p.err } : isRunning ? { glyph: '◌', color: p.accent } : { glyph: '✓', color: p.ok }
@@ -201,11 +227,15 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'ToolResult' }, async ($, e, next) => {
-    if (!(await read($, isOn))) return next(e)
     const kind = kindOf(e.props.tool)
-    if (kind === null) return next(e)
+    if (!(await read($, isOn)) || kind === null) {
+      count('ToolResult', e.surface, 'passed')
+      return next(e)
+    }
+    count('ToolResult', e.surface, 'drew')
 
-    const p = PALETTES[await read($, mode)]
+    const p = paletteFor(await read($, mode), e.surface)
+    const tint = p.surface ? { backgroundColor: p.surface } : {}
     const { Box, Text, Code } = $.ui.resolve(e)
 
     if (e.props.isErrored) {
@@ -246,7 +276,7 @@ export const register: Register = on => {
       const { added, removed } = diffCounts(hunks)
       return (
         <Box key="diff-card" flexDirection="column" borderStyle="round" borderColor={p.accent}>
-          <Box key="diff-head" flexDirection="row" columnGap={1} paddingX={1} backgroundColor={p.surface}>
+          <Box key="diff-head" flexDirection="row" columnGap={1} paddingX={1} {...tint}>
             <Text color={p.accent} bold>
               {ICONS.write} {path}
             </Text>
@@ -296,14 +326,22 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'UserMessage' }, async ($, e, next) => {
-    if (!(await read($, isOn))) return next(e)
+    // The person's own words arrive as `composer` at the terminal, `bridge`
+    // from Remote Control and `sdk` from the desktop app; rows that carry a
+    // task or another party's message keep Claude Code's own drawing.
     const { kind } = e.props.origin
-    if (e.props.task || e.props.from || (kind !== 'composer' && kind !== 'bridge')) return next(e)
+    const isTheirs = kind === 'composer' || kind === 'bridge' || kind === 'sdk' || kind === 'unclassified'
+    if (!(await read($, isOn)) || e.props.task || e.props.from || !isTheirs) {
+      count('UserMessage', e.surface, 'passed')
+      return next(e)
+    }
+    count('UserMessage', e.surface, 'drew')
 
-    const p = PALETTES[await read($, mode)]
+    const p = paletteFor(await read($, mode), e.surface)
+    const tint = p.surface ? { backgroundColor: p.surface } : {}
     const { Box, Text } = $.ui.resolve(e)
     return (
-      <Box key="you" flexDirection="row" columnGap={1} paddingX={1} backgroundColor={p.surface}>
+      <Box key="you" flexDirection="row" columnGap={1} paddingX={1} {...tint}>
         <Text color={p.accent} bold>
           ❯
         </Text>
@@ -315,6 +353,7 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'Spinner' }, async ($, e, next) => {
+    count('Spinner', e.surface, 'passed')
     if (e.surface !== 'terminal' || e.props.message !== null || !(await read($, isOn))) return next(e)
     return next({ ...e, props: { ...e.props, word: wordFor(SPINNER_WORDS, e.requestId) } })
   })
@@ -329,15 +368,12 @@ export const register: Register = on => {
     const u = await read($, usage)
     if (!u || u.percent === undefined) return next(e)
 
-    const p = PALETTES[await read($, mode)]
+    const p = paletteFor(await read($, mode), e.surface)
     const { Box, Text } = $.ui.resolve(e)
     const used = u.percent
     const color = used >= 90 ? p.err : used >= 70 ? p.warn : p.accent
     return (
       <Box key="band" flexDirection="row" columnGap={2}>
-        <Text color={p.accent} bold>
-          MU
-        </Text>
         <Text>
           <Text color={color}>{meter(used)}</Text> <Text color={p.muted}>context {100 - used}% left</Text>
         </Text>
@@ -352,13 +388,11 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'CommandOutput', props: { command: COMMAND } }, async ($, e, next) => {
     if (e.props.isErrored) return next(e)
-    const p = PALETTES[await read($, mode)]
+    count('CommandOutput', e.surface, 'drew')
+    const p = paletteFor(await read($, mode), e.surface)
     const { Box, Text } = $.ui.resolve(e)
     return (
-      <Box key="mu-output" flexDirection="row" columnGap={1} paddingX={1} borderStyle="round" borderColor={p.accent}>
-        <Text color={p.accent} bold>
-          MU
-        </Text>
+      <Box key="mu-output" paddingX={1} borderStyle="round" borderColor={p.accent}>
         <Text color={p.fg} wrap="wrap">
           {e.props.text}
         </Text>
