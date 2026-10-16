@@ -1,0 +1,23 @@
+{
+  "name": "Maryville Light",
+  "base": "light",
+  "overrides": {
+    "claude": "#94151E",
+    "claudeShimmer": "#CE2431",
+    "promptBorder": "#94151E",
+    "promptBorderShimmer": "#CE2431",
+    "permission": "#94151E",
+    "permissionShimmer": "#CE2431",
+    "suggestion": "#CE2431",
+    "remember": "#94151E",
+    "text": "#262626",
+    "inactive": "#5A5A5A",
+    "subtle": "#9A9B9D",
+    "userMessageBackground": "#F6E7E8",
+    "userMessageBackgroundHover": "#EFD3D6",
+    "rate_limit_fill": "#94151E",
+    "rate_limit_empty": "#DCDDDF",
+    "briefLabelClaude": "#94151E",
+    "briefLabelYou": "#5A5A5A"
+  }
+}

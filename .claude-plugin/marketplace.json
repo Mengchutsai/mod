@@ -3,6 +3,7 @@
   "owner": { "name": "Mengchutsai" },
   "plugins": [
     { "name": "token-buddy", "source": "./token-buddy", "description": "A cute side panel showing how much context and usage you have left" },
-    { "name": "my-questions", "source": "./my-questions", "description": "A side panel listing your questions; click one to jump to it in the chat" }
+    { "name": "my-questions", "source": "./my-questions", "description": "A side panel listing your questions; click one to jump to it in the chat" },
+    { "name": "maryville-theme", "source": "./maryville-theme", "description": "Maryville University colors for Claude Code: dark and light themes, switched with /maryville" }
   ]
 }

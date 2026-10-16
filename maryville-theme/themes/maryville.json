@@ -1,0 +1,23 @@
+{
+  "name": "Maryville",
+  "base": "dark",
+  "overrides": {
+    "claude": "#CE2431",
+    "claudeShimmer": "#E8616B",
+    "promptBorder": "#94151E",
+    "promptBorderShimmer": "#CE2431",
+    "permission": "#CE2431",
+    "permissionShimmer": "#E8616B",
+    "suggestion": "#E8616B",
+    "remember": "#CE2431",
+    "inactive": "#9A9B9D",
+    "inactiveShimmer": "#C4C5C7",
+    "subtle": "#6B6C6E",
+    "userMessageBackground": "#2B1114",
+    "userMessageBackgroundHover": "#3A171B",
+    "rate_limit_fill": "#CE2431",
+    "rate_limit_empty": "#4A4B4D",
+    "briefLabelClaude": "#CE2431",
+    "briefLabelYou": "#9A9B9D"
+  }
+}
