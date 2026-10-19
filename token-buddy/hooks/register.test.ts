@@ -30,19 +30,3 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect((await ui.find({ key: 'limit-five_hour' }))?.text).toContain('60% left')
   })
 }
-
-for (const surface of ['terminal', 'desktop'] as const) {
-  test(`band above the prompt shows what is left on ${surface}`, async ($, on) => {
-    mock.clock(on)
-    on('session.measure', (_$, e) => ({ changed: e.changed }))
-    await $.session.measure({
-      context: { tokens: 150_000, window: 200_000, percent: 75 },
-      rateLimits: [{ kind: 'seven_day', percentUsed: 10 }],
-      changed: ['context', 'rateLimits'],
-    })
-    const ui = await $.ui.mount({ plugin: 'token-buddy', surface, component: 'AbovePrompt', props: { hasSurvey: false } as never })
-    const text = (await ui.find({ key: 'band' }))?.text
-    expect(text).toContain('25% left')
-    expect(text).toContain('Weekly limit 90% left')
-  })
-}

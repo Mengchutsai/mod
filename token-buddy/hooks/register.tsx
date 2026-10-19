@@ -96,23 +96,6 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    const snap = await read($, snapshot)
-
-    if (e.props.hasSurvey || !snap) return next(e)
-
-    const { Box, Text } = $.ui.resolve(e)
-    const left = snap.percent === undefined ? undefined : 100 - snap.percent
-    const m = mood(left ?? 100)
-
-    return (
-      <Box key="band">
-        <Text color={m.color}>{statusLine(snap)}</Text>
-        {left !== undefined && left <= 10 && <Text italic> {m.line}</Text>}
-      </Box>
-    )
-  })
-
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Text } = $.ui.resolve(e)
     const snap = await read($, snapshot)
