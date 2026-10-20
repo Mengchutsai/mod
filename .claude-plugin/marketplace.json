@@ -5,6 +5,6 @@
     { "name": "token-buddy", "source": "./token-buddy", "description": "A cute side panel showing how much context and usage you have left" },
     { "name": "my-questions", "source": "./my-questions", "description": "A side panel listing your questions; click one to jump to it in the chat" },
     { "name": "maryville-theme", "source": "./maryville-theme", "description": "Maryville University colors for Claude Code: tool rows, edit cards and your messages drawn in maroon and red, plus matching terminal themes, switched with /maryville" },
-    { "name": "clipboard", "source": "./clipboard", "description": "A side panel that keeps snippets you want to hold on to: a keep button under every reply, Claude's last answer, or a typed note; export them to a markdown file with /keep export" }
+    { "name": "clipboard", "source": "./clipboard", "description": "A side panel that keeps snippets you want to hold on to, one list per project: a keep button under every reply, Claude's last answer, or a typed note; export them to a markdown file with /keep export" }
   ]
 }

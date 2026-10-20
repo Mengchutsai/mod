@@ -15,6 +15,8 @@ declare module 'claude-code' {
       lastAnswer: string | null
       /** The one-line status shown at the top of the pane after an action. */
       note: string | null
+      /** The session's project root; clips are filed in the store under it, one list per project. */
+      project: string | null
     }
   }
 }

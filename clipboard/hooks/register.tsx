@@ -14,6 +14,24 @@ const MARYVILLE_RED = '#ce2431'
 const clips = atom({ plugin: 'clipboard', key: 'clips' } as const, [] as Clip[])
 const lastAnswer = atom({ plugin: 'clipboard', key: 'lastAnswer' } as const, null as string | null)
 const note = atom({ plugin: 'clipboard', key: 'note' } as const, null as string | null)
+const project = atom({ plugin: 'clipboard', key: 'project' } as const, null as string | null)
+
+/** A project folder in one spelling: forward slashes, no trailing slash, lower case (Windows hands the same folder over as `c:\` and `C:\`). */
+function normalizeRoot(root: string): string {
+  return root.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase()
+}
+
+/** The store key under which a project's clips live: one list per project folder; `clips` alone when no project is known. */
+export function storeKey(root: string | null): string {
+  return root ? `clips:${normalizeRoot(root)}` : 'clips'
+}
+
+/** The project's name for the pane: the last segment of its folder. */
+export function projectName(root: string | null): string | null {
+  if (!root) return null
+  const parts = root.replace(/\\/g, '/').replace(/\/+$/, '').split('/')
+  return parts[parts.length - 1] || root
+}
 
 /** The list with `text` kept at the front, a clip identical to the newest one not kept twice, the oldest past the cap dropped. */
 export function addClip(list: readonly Clip[], text: string, from: Clip['from'], at: string): Clip[] {
@@ -53,7 +71,7 @@ export function parseKeep(args: string): { action: 'selection' | 'answer' | 'exp
 
 async function persist($: EngineInterface, list: readonly Clip[]): Promise<void> {
   try {
-    await $.store.set('clips', list)
+    await $.store.set(storeKey(await read($, project)), list)
   } catch {
     // The store is unavailable (a test kit, a host without one): the session keeps the list in state.
   }
@@ -112,9 +130,17 @@ export const register: Register = on => {
       argumentHint: '[text] | answer | export | clear',
     })
 
+    // Clips are kept per project: the list loaded is the one filed under this session's project folder.
+    let root: string | null = null
     try {
-      const stored = await $.store.get('clips')
-      if (Array.isArray(stored)) await update($, clips, () => stored as Clip[])
+      root = await $.session.root()
+    } catch {
+      // No project known (a test kit, a host without one): one shared list.
+    }
+    await update($, project, () => root)
+    try {
+      const stored = await $.store.get(storeKey(root))
+      await update($, clips, () => (Array.isArray(stored) ? (stored as Clip[]) : []))
     } catch {
       // No store: start empty.
     }
@@ -138,7 +164,8 @@ export const register: Register = on => {
     const opened = await $.ui.open({ id: PANE, title: TITLE })
     if (opened.isPlaced) return { text: 'Clipboard panel opened.' }
     const list = await read($, clips)
-    return { text: `${list.length} clips kept. (panel not shown: ${opened.reason})` }
+    const name = projectName(await read($, project))
+    return { text: `${list.length} clips kept${name ? ` for ${name}` : ''}. (panel not shown: ${opened.reason})` }
   })
 
   on('command.run', { command: 'keep' }, async ($, e) => {
@@ -218,9 +245,15 @@ export const register: Register = on => {
     const { Box, Text, Button, Input, Markdown } = $.ui.resolve(e)
     const list = await read($, clips)
     const status = await read($, note)
+    const name = projectName(await read($, project))
 
     return (
       <Box flexDirection="column" rowGap={1}>
+        {name && (
+          <Box key="project">
+            <Text dimColor>Clips for {name}</Text>
+          </Box>
+        )}
         <Box key="actions" flexDirection="row" columnGap={1} flexWrap="wrap">
           <Button key="keep-selection" label="Keep selection" hotkey="s" onPress={async () => say($, await keepSelection($))} />
           <Button key="keep-answer" label="Keep last answer" hotkey="a" onPress={async () => say($, await keepAnswer($))} />
@@ -243,7 +276,7 @@ export const register: Register = on => {
         {list.length === 0 && (
           <Box key="empty">
             <Text dimColor wrap="wrap">
-              Nothing kept yet. Select text in the chat and press Keep selection, keep Claude's last answer, or type a note. /keep does the same from the prompt.
+              Nothing kept in this project yet. Select text in the chat and press Keep selection, keep Claude's last answer, or type a note. /keep does the same from the prompt.
             </Text>
           </Box>
         )}
